@@ -1,12 +1,14 @@
 #!/usr/bin/env python
-#
-# Extracts media files (images/movies) from a pptx, docx, or xlsx file
-#
-# Copyright (c) 2021, John M. Haynes
-# BSD three-clause license
-#
-# VERSION HISTORY
-# 2021/04/03  Written by John M. Haynes (https://github.com/johnhcc)
+
+"""
+Extracts media files (such as images and movies) from pptx, docx, xlsx, and
+related files. Limited support for OpenDocument formats.
+
+Copyright (c) 2021, John M. Haynes
+BSD three-clause license
+
+Written by John M. Haynes (https://github.com/johnhcc)
+"""
 
 import getopt
 import os
@@ -17,7 +19,7 @@ import sys
 from zipfile import ZipFile
 
 util_name = 'ofc_mediax'
-ver = '1.0'
+ver = '1.1'
 
 def main():
 
@@ -55,14 +57,23 @@ def main():
             archive_files = f.namelist()
     except:
         sys.stderr.write('Error: file extraction failed. ')
-        sys.stderr.write('Is input properly formatted pptx, docx, or xlsx?\n')
+        sys.stderr.write('Is input a supported file format?\n')
         sys.exit(1)    
     
     # Walk through files
+
+    """
+    The method of finding media files is to search standard directories rather
+    than parsing the manifest. This is because certain media types
+    (such as movies) that are valid in pptx files (for example) do not seem
+    to be recognized by ContentType in the equivalent OpenDocument document.
+    """
     
     media_list = []
-    for filename in archive_files:
-        if re.match("^(ppt|word|xl)"+os.path.sep+"media",filename):
+    for filename in archive_files:        
+        if re.match("^(ppt|word|xl)/media/",filename) or \
+            re.match("^media/",filename) or \
+            re.match("^Pictures/",filename):
             media_list.append(filename)
 
     # If listing files only
@@ -112,9 +123,13 @@ def main():
 # Display usage
 
 def usage():
-    usage_txt = r"""Usage: """+util_name+""" [OPTIONS] FILE OUTPUT_DIR
+    usage_txt = \
+r"""Extracts media files (such as images and movies) from pptx, docx, xlsx, and
+related files. Limited support for OpenDocument formats.
 
-  FILE               a valid pptx, docx, or xlsx file
+Usage: """+util_name+""" [OPTIONS] FILE OUTPUT_DIR
+
+  FILE               file containing media to extract
   OUTPUT_DIR         a (non-existing) directory to write extracted files
 
   -h, --help         display this help and exit
@@ -122,7 +137,6 @@ def usage():
   -x, --extract EXT  extract only files with extension EXT (can provide this
                      argument multiple times; examples: .jpg , .png)
 
-Extracts media files (images/movies) from a pptx, docx, or xlsx file
 """+util_name+""" v"""+ver+""" written by John M. Haynes"""
 
     sys.stdout.write(usage_txt + '\n')

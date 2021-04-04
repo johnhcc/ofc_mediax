@@ -1,0 +1,8 @@
+ofc_mediax changelog
+
+Version 1.0  2021/04/03
+- Initial release
+
+Version 1.1  2021/04/04
+- Fix for Windows paths
+- Limited support for OpenDocument formats

@@ -5,7 +5,7 @@ misplaced or deleted the original images? This is a tool to recover
 those embedded media files.
 
 ofc_mediax extracts media files (such as images and movies) from pptx,
-docx, or xlsx files.
+docx, xlsx, and related files. Limited support for OpenDocument formats.
 
 ------------------------------------------------------------------------
 
@@ -37,7 +37,7 @@ or download a zip or tarball and extract the contents.
 
 Then simply place the ofc_mediax file somewhere in your path.
 
-Works with either Python 2 or 3. Run it by simply typing ofc_mediax (or
+Requires either Python 2 or 3. Run it by simply typing 'ofc_mediax' (or
 'python ofc_mediax' if you prefer, or 'python.exe ofc_mediax' on Windows).
 
 Run without any arguments for usage.
