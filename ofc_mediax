@@ -1,0 +1,132 @@
+#!/usr/bin/env python
+#
+# Extracts media files (images/movies) from a pptx, docx, or xlsx file
+#
+# Copyright (c) 2021, John M. Haynes
+# BSD three-clause license
+#
+# VERSION HISTORY
+# 2021/04/03  Written by John M. Haynes (https://github.com/johnhcc)
+
+import getopt
+import os
+import re
+import tempfile
+import shutil
+import sys
+from zipfile import ZipFile
+
+util_name = 'ofc_mediax'
+ver = '1.0'
+
+def main():
+
+    # Check input arguments
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], 'hlx:', ['help','list',
+                                                          'extract='])
+    except getopt.GetoptError:
+        usage()
+
+    extract_ext = []
+    list_only = False
+    for opt, arg in opts:
+        if opt in ('-h', '--help'):
+            usage()
+        elif opt in ('-l', '--list'):
+            list_only = True          
+        elif opt in ('-x', '--extract'):
+            extract_ext.append(arg)
+        else:
+            usage()
+
+    if list_only:
+        if len(args) < 1:
+            usage()
+    else:      
+        if len(args) !=  2:
+            usage()
+    
+    # Get files in archive
+
+    try:
+        with ZipFile(args[0]) as f:
+            archive_files = f.namelist()
+    except:
+        sys.stderr.write('Error: file extraction failed. ')
+        sys.stderr.write('Is input properly formatted pptx, docx, or xlsx?\n')
+        sys.exit(1)    
+    
+    # Walk through files
+    
+    media_list = []
+    for filename in archive_files:
+        if re.match("^(ppt|word|xl)"+os.path.sep+"media",filename):
+            media_list.append(filename)
+
+    # If listing files only
+    
+    if list_only:
+        for file in sorted(media_list):
+            sys.stdout.write(os.path.basename(file)+'\n')    
+        sys.exit(0)
+
+    # If no media, print informative message to said effect
+    
+    if len(media_list) == 0:
+        sys.stdout.write('File does not appear to contain media\n')
+        sys.exit(0)
+
+    # Make sure output path does not exist
+    
+    if os.path.exists(args[1].rstrip("/")):
+        sys.stderr.write('Error: path already exists: ' + args[1] +'\n')
+        sys.exit(2)
+
+    # Create temp directory to extract files to
+
+    temp_dir = tempfile.mkdtemp()
+
+    # Extract requested files
+
+    with ZipFile(args[0]) as f:
+        for file in sorted(media_list):
+            extract_file = True
+            if len(extract_ext):
+                fname,fext = os.path.splitext(file)
+                if fext not in extract_ext:
+                    extract_file = False
+                
+            if extract_file:
+                f.extract(file,temp_dir)
+                if not os.path.isdir(args[1]):
+                    os.mkdir(args[1])
+                shutil.move(os.path.join(temp_dir,file), args[1])
+                sys.stdout.write('Extracted: ' + os.path.basename(file)+'\n')
+        
+    # Remove temp directory
+
+    shutil.rmtree(temp_dir)
+
+# Display usage
+
+def usage():
+    usage_txt = r"""Usage: """+util_name+""" [OPTIONS] FILE OUTPUT_DIR
+
+  FILE               a valid pptx, docx, or xlsx file
+  OUTPUT_DIR         a (non-existing) directory to write extracted files
+
+  -h, --help         display this help and exit
+  -l, --list         list media files but do not extract
+  -x, --extract EXT  extract only files with extension EXT (can provide this
+                     argument multiple times; examples: .jpg , .png)
+
+Extracts media files (images/movies) from a pptx, docx, or xlsx file
+"""+util_name+""" v"""+ver+""" written by John M. Haynes"""
+
+    sys.stdout.write(usage_txt + '\n')
+    sys.exit(0)
+
+if __name__ == '__main__':
+    main()
